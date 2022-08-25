@@ -1,9 +1,5 @@
 #include <Arduino.h>
 #include "MIDIUSB.h"
-// #include <Control_Surface.h>
-
-// Instantiate a MIDI over USB interface.
-// USBMIDI_Interface midi;
 
 int LED = LED_BUILTIN;
 String msg = "";
