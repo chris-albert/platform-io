@@ -1,0 +1,3 @@
+ - [PlatformIO Board](https://docs.platformio.org/en/latest/platforms/teensy.html)
+ - [Teensy 4 Example](https://forum.pjrc.com/threads/57423-Teensy-4-0-I2S-without-Audio-Shield-and-flash-memory-question?p=214302&viewfull=1#post214302)
+ - [Teesny Audio](https://www.pjrc.com/teensy/gui/index.html?info=AudioOutputMQS)
