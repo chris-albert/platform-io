@@ -2,21 +2,19 @@
 #include <Audio.h>
 #include <protothreads.h>
 #include <string>
+#include "AudioSampleOneBeat.h"
+#include "AudioSampleBeat.h"
+
+#define ONE_BEAT_MIDI 43
+#define BEAT_MIDI 44
 
 const int chipSelect = BUILTIN_SDCARD;
 
-AudioPlayMemory    playMem;
-AudioPlaySdWav     playWav1;
-
+AudioPlayMemory playMem;
 AudioOutputMQS  audioOutput;
 AudioAmplifier	amp1;
-
-AudioConnection patch1(playWav1, amp1);
+AudioConnection patch1(playMem, amp1);
 AudioConnection patch2(amp1, 0, audioOutput, 0);
-
-void playFile(const char *filename) {
-  playWav1.play(filename);
-}
 
 /*
   MIDI Status LED Protothread
@@ -40,39 +38,29 @@ int statusThread(struct pt* pt) {
   PT_END(pt);
 }
 
-char filename[] = "/midi_XX.wav";
-char num[2];
-
 void noteOn(byte channel, byte note, byte velocity) {
-    if(note < 100) {
-      statusState = HIGH;
-      ultoa((long) note, num, 10);
-      filename[6] = num[0];
-      filename[7] = num[1];
-      playFile(filename);
+    statusState = HIGH;
+    if(note == ONE_BEAT_MIDI) {
+        playMem.play(AudioSampleOneBeat);
+    } else if(note == BEAT_MIDI) {
+        playMem.play(AudioSampleBeat);
     }
 }
 
 void setup() {
 
-  Serial.begin(9600);
-  while (!Serial && millis() < 4000 );
+  #ifdef USB_SERIAL
+    Serial.begin(9600);
+    while (!Serial && millis() < 4000 );
+  #endif
   
   pinMode(LED_BUILTIN, OUTPUT);
 
   AudioMemory(10);
-  amp1.gain(0.5);
-
-  Serial.println("Initializing SD card...");
-  
-  if (!SD.begin(chipSelect)) {
-    Serial.println("Card failed, or not present");
-    while(1);
-  }
-  Serial.println("SD Card initialized.");
+  amp1.gain(1);
 
   #ifdef USB_MIDI
-  usbMIDI.setHandleNoteOn(noteOn);
+    usbMIDI.setHandleNoteOn(noteOn);
   #endif
 
   PT_INIT(&ptStatus);
@@ -84,7 +72,7 @@ void loop() {
   PT_SCHEDULE(statusThread(&ptStatus));
 
   #ifdef USB_MIDI
-  while (usbMIDI.read()) ;
+    while (usbMIDI.read()) ;
   #endif
 
 }
